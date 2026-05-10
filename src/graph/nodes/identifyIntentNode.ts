@@ -1,14 +1,35 @@
+import { getSystemPrompt, getUserPromptTemplate, IntentSchema } from '../../prompts/v1/identifyIntent.ts';
+import { professionals } from '../../services/appointmentService.ts';
+import { OpenRouterService } from '../../services/openRouterService.ts';
 import type { GraphState } from '../graph.ts';
 
-export function createIdentifyIntentNode() {
-  return async (state: GraphState): Promise<GraphState> => {
-    console.log(`🔍 Identifying intent...`);
-   const input = state.messages.at(-1)!.text;
+export function createIdentifyIntentNode(llmClient: OpenRouterService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    console.log(`🔍 Identifying intent...`, llmClient);
+    const input = state.messages.at(-1)!.text;
 
     try {
+      const systemPromp = getSystemPrompt(professionals)
+      const userPromp = getUserPromptTemplate(input)
+
+      const result = await llmClient.generateStructured(
+        systemPromp,
+        userPromp,
+        IntentSchema
+      )
+
+      if(!result.success) {
+        return {
+          intent: 'unknown',
+          error: result.error,
+        }
+      }
+
+      const intentData = result.data!
 
       return {
         ...state,
+        ...intentData,
       };
     } catch (error) {
       console.error('❌ Error in identifyIntent node:', error);
