@@ -44,8 +44,8 @@ describe('Medical Appointment System - E2E Tests', async () => {
         console.log('Cancel Success Response:', response.body);
 
         assert.equal(response.statusCode, 200);
-        // const body = JSON.parse(response.body);
-        // assert.equal(body.intent, 'cancel');
-        // assert.equal(body.success, true);
+        const body = JSON.parse(response.body);
+        assert.equal(body.intent, 'cancel');
+        assert.equal(body.actionSuccess, true);
     });
 });
